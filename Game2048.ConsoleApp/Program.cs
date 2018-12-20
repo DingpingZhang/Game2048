@@ -9,6 +9,8 @@ namespace Game2048.ConsoleApp
     internal class Program
     {
         private static readonly Random Random = new Random();
+        private static int _score;
+        private static int _maxNumber;
 
         private static void Main()
         {
@@ -18,6 +20,7 @@ namespace Game2048.ConsoleApp
 
             while (true)
             {
+                PrintStatistics();
                 PrintMatrix(game2048Matrix);
 
                 game2048Matrix.Matrix.CopyTo(backup, 0);
@@ -38,6 +41,7 @@ namespace Game2048.ConsoleApp
                         break;
                     case ConsoleKey.Spacebar:
                         game2048Matrix = GetGame2048Matrix();
+                        game2048Matrix.Matrix.CopyTo(backup, 0);
                         break;
                 }
 
@@ -50,10 +54,19 @@ namespace Game2048.ConsoleApp
 
         public static Game2048Matrix GetGame2048Matrix()
         {
+            _score = 0;
+            _maxNumber = 0;
+
             var game2048Matrix = new Game2048Matrix(6);
 
             game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
             game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
+
+            game2048Matrix.Merged += (sender, args) =>
+            {
+                _score += args.MergedValue;
+                if (args.MergedValue > _maxNumber) _maxNumber = args.MergedValue;
+            };
 
             game2048Matrix.Merged += (sender, args) => Trace.WriteLine(
                 $"[GAME2048 MERGED] " +
@@ -91,6 +104,14 @@ namespace Game2048.ConsoleApp
             return !left.Where((item, i) => item != right[i]).Any();
         }
 
+        private static void PrintStatistics()
+        {
+            Console.WriteLine($"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
+            Console.WriteLine($"┃ Score: {_score,-8} Max Number: {_maxNumber,-6} ┃");
+            Console.WriteLine($"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+            Console.WriteLine();
+        }
+
         public static void PrintMatrix(Game2048Matrix game2048Matrix)
         {
             var matrix = game2048Matrix.Matrix;
@@ -102,8 +123,11 @@ namespace Game2048.ConsoleApp
             {
                 for (int j = 0; j < order; j++)
                 {
-                    Console.Write($"\t{matrix[i * order + j]} ");
+                    var value = matrix[i * order + j];
+                    Console.Write($"{(value == 0 ? "." : value.ToString()),-5} ");
                 }
+                Console.WriteLine();
+                Console.WriteLine();
                 Console.WriteLine();
             }
         }
