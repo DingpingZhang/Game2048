@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Game2048.Core;
 
@@ -49,10 +50,23 @@ namespace Game2048.ConsoleApp
 
         public static Game2048Matrix GetGame2048Matrix()
         {
-            var game2048Matrix = new Game2048Matrix(5);
+            var game2048Matrix = new Game2048Matrix(6);
 
             game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
             game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
+
+            game2048Matrix.Merged += (sender, args) => Trace.WriteLine(
+                $"[GAME2048 MERGED] " +
+                $"{args.Orientation}: " +
+                $"({args.FromCell.X}, {args.FromCell.Y}) --> " +
+                $"({args.ToCell.X}, {args.ToCell.Y}) = " +
+                $"{args.MergedValue}");
+
+            game2048Matrix.Moved += (sender, args) => Trace.WriteLine(
+                $"[GAME2048 MOVED] " +
+                $"{args.Orientation}: " +
+                $"({args.FromCell.X}, {args.FromCell.Y}) --> " +
+                $"({args.ToCell.X}, {args.ToCell.Y})");
 
             return game2048Matrix;
         }
