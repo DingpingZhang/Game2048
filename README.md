@@ -20,8 +20,8 @@ var cellValue = matrix[1, 3]; // Gets the value on (1, 3).
 - You will see a console program launched, just like the screenshot below;
 - You can control these cells by using the arrow keys (`←`, `↑`, `→` and `↓`), or start over by pressing the `space bar`;
 
-![console-ui](Screenshots\cui.png)
+![console-ui](./Screenshots/cui.png)
 
 - You can open the `output` dialog on Visual Studio, and view the action event record (`Moved` or `Merged`), just like below.
 
-![operation-events-log](Screenshots\events-log.png)
+![operation-events-log](./Screenshots/events-log.png)
