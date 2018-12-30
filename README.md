@@ -25,3 +25,34 @@ var cellValue = matrix[1, 3]; // Gets the value on (1, 3).
 - You can open the `output` dialog on Visual Studio, and view the action event record (`Moved` or `Merged`), just like below.
 
 ![operation-events-log](./Screenshots/events-log.png)
+
+## 3. Core Code
+
+```csharp
+private void MoveAndMergeArray(Func<int, int> getter, Action<int, int> setter, Action<(int from, int to), int?> reporter)
+{
+    for (int p = 0, i = 1; i < MatrixOrder; i++)
+    {
+        int next = getter(i);
+        if (next == 0) continue;
+
+        int current = getter(p);
+        if (current == next)
+        {
+            setter(p++, next * 2);
+            setter(i, 0);
+            reporter?.Invoke((i, p - 1), next * 2);
+        }
+        else
+        {
+            int toIndex = current == 0 ? p : ++p;
+            if (toIndex != i)
+            {
+                setter(toIndex, next);
+                setter(i, 0);
+                reporter?.Invoke((i, toIndex), null);
+            }
+        }
+    }
+}
+```
