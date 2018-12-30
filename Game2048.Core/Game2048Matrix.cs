@@ -9,17 +9,22 @@ namespace Game2048.Core
         private readonly IDictionary<MoveOrientation, (Func<int, int> Getter, Action<int, int> Setter)[]> _operatorsDictionary;
 
         public event EventHandler<MergedEventArgs> Merged;
-
         public event EventHandler<MovedEventArgs> Moved;
+
+        public int[] Storage { get; }
 
         public int MatrixOrder { get; }
 
-        public int[] Matrix { get; }
+        public int this[int x, int y]
+        {
+            get => Storage[x + y * MatrixOrder];
+            set => Storage[x + y * MatrixOrder] = value;
+        }
 
         public Game2048Matrix(int matrixOrder = 4)
         {
             MatrixOrder = matrixOrder;
-            Matrix = new int[matrixOrder * matrixOrder];
+            Storage = new int[matrixOrder * matrixOrder];
             _operatorsDictionary = new Dictionary<MoveOrientation, (Func<int, int> Getter, Action<int, int> Setter)[]>
             {
                 { MoveOrientation.Left, GetOperators(GetLinearFunction(matrixOrder, 1)).ToArray() },
@@ -35,12 +40,12 @@ namespace Game2048.Core
             foreach (var (getter, setter) in _operatorsDictionary[orientation])
             {
                 var index = i++;
-                MoveAndMergeArray(getter, setter, (mergedCells, mergedValue) =>
+                MoveAndMergeArray(getter, setter, (movedCells, mergedValue) =>
                 {
                     if (mergedValue.HasValue)
-                        RaiseMerged(orientation, index, mergedCells, mergedValue.Value);
+                        Merged?.Invoke(this, new MergedEventArgs(orientation, index, movedCells, MatrixOrder, mergedValue.Value));
                     else
-                        RaiseMoved(orientation, index, mergedCells);
+                        Moved?.Invoke(this, new MovedEventArgs(orientation, index, movedCells, MatrixOrder));
                 });
             }
         }
@@ -48,9 +53,9 @@ namespace Game2048.Core
         private IEnumerable<(Func<int, int> Getter, Action<int, int> Setter)> GetOperators(Func<int, int, int> indexGetter)
         {
             return Enumerable.Range(0, MatrixOrder)
-                .Select(i => new Func<int, int>(index => Matrix[indexGetter(i, index)]))
+                .Select(i => new Func<int, int>(index => Storage[indexGetter(i, index)]))
                 .Zip(Enumerable.Range(0, MatrixOrder)
-                        .Select(i => new Action<int, int>((index, value) => Matrix[indexGetter(i, index)] = value)),
+                        .Select(i => new Action<int, int>((index, value) => Storage[indexGetter(i, index)] = value)),
                     (getter, setter) => (getter, setter));
         }
 
@@ -82,15 +87,5 @@ namespace Game2048.Core
         }
 
         private static Func<int, int, int> GetLinearFunction(int a, int b, int c = 0) => (x, y) => a * x + b * y + c;
-
-        protected virtual void RaiseMerged(MoveOrientation orientation, int index, (int FromIndex, int ToIndex) movedCells, int mergedValue)
-        {
-            Merged?.Invoke(this, new MergedEventArgs(orientation, index, movedCells, MatrixOrder, mergedValue));
-        }
-
-        protected virtual void RaiseMoved(MoveOrientation orientation, int index, (int FromIndex, int ToIndex) movedCells)
-        {
-            Moved?.Invoke(this, new MovedEventArgs(orientation, index, movedCells, MatrixOrder));
-        }
     }
 }

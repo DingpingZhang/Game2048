@@ -16,14 +16,14 @@ namespace Game2048.ConsoleApp
         {
             var game2048Matrix = GetGame2048Matrix();
 
-            var backup = new int[game2048Matrix.Matrix.Length];
+            var backup = new int[game2048Matrix.Storage.Length];
 
             while (true)
             {
                 PrintStatistics();
                 PrintMatrix(game2048Matrix);
 
-                game2048Matrix.Matrix.CopyTo(backup, 0);
+                game2048Matrix.Storage.CopyTo(backup, 0);
 
                 switch (Console.ReadKey(true).Key)
                 {
@@ -41,12 +41,12 @@ namespace Game2048.ConsoleApp
                         break;
                     case ConsoleKey.Spacebar:
                         game2048Matrix = GetGame2048Matrix();
-                        game2048Matrix.Matrix.CopyTo(backup, 0);
+                        game2048Matrix.Storage.CopyTo(backup, 0);
                         break;
                 }
 
-                if (!Equals(backup, game2048Matrix.Matrix))
-                    game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
+                if (!Equals(backup, game2048Matrix.Storage))
+                    game2048Matrix.Storage[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
 
                 Console.Clear();
             }
@@ -59,8 +59,8 @@ namespace Game2048.ConsoleApp
 
             var game2048Matrix = new Game2048Matrix(6);
 
-            game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
-            game2048Matrix.Matrix[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
+            game2048Matrix.Storage[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
+            game2048Matrix.Storage[GetExclusiveIndexes(game2048Matrix)] = GetTwoOrFour();
 
             game2048Matrix.Merged += (sender, args) =>
             {
@@ -89,8 +89,8 @@ namespace Game2048.ConsoleApp
             int result;
             do
             {
-                result = Random.Next(0, matrix.Matrix.Length);
-            } while (matrix.Matrix[result] != 0);
+                result = Random.Next(0, matrix.Storage.Length);
+            } while (matrix.Storage[result] != 0);
 
             return result;
         }
@@ -114,16 +114,13 @@ namespace Game2048.ConsoleApp
 
         public static void PrintMatrix(Game2048Matrix game2048Matrix)
         {
-            var matrix = game2048Matrix.Matrix;
             var order = game2048Matrix.MatrixOrder;
-
-            if (matrix.Length != order * order) throw new InvalidOperationException();
 
             for (int i = 0; i < order; i++)
             {
                 for (int j = 0; j < order; j++)
                 {
-                    var value = matrix[i * order + j];
+                    var value = game2048Matrix[j, i];
                     Console.Write($"{(value == 0 ? "." : value.ToString()),-5} ");
                 }
                 Console.WriteLine();
